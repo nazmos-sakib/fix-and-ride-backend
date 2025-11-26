@@ -39,43 +39,6 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return email -> userRepository.findByEmail(email)
-                .<UserDetails>map(u -> org.springframework.security.core.userdetails.User
-                        .withUsername(u.getEmail())
-                        .password(u.getPasswordHash())
-                        .authorities(List.of(new SimpleGrantedAuthority("ROLE_USER"))) // no roles for now
-                        .build())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService());
-        provider.setPasswordEncoder(passwordEncoder);
-        return provider;
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
-
-/*
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                )
-                .csrf(csrf -> csrf.disable()) // ✅ new way
-                .formLogin(form -> form.disable()); // disable login page
-
-        return http.build();
-    }
-*/
-    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
@@ -83,11 +46,14 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/h2/**").permitAll()
+                        .requestMatchers("/api/auth/admin/login").permitAll()
+                        // Admin-protected endpoints
+                        .requestMatchers("/api/admin/booking/**").hasRole("ADMIN")
+                        // Regular user endpoints
+                        .requestMatchers("/api/user/booking/**").hasRole("USER")
+                        .requestMatchers("/api/services/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .headers(h -> h.frameOptions(frame -> frame.sameOrigin())) // for H2 console
-                .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -98,7 +64,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         return request -> {
             CorsConfiguration cfg = new CorsConfiguration();
-            cfg.setAllowedOrigins(List.of("http://localhost:5500", "http://127.0.0.1:5500")); // vanilla Live Server
+            cfg.setAllowedOrigins(List.of("http://localhost:5500", "http://127.0.0.1:5500","http://192.168.1.112:5500","http://192.168.1.118:5500")); // vanilla Live Server
             cfg.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
             cfg.setAllowedHeaders(List.of("*"));
             cfg.setAllowCredentials(false);

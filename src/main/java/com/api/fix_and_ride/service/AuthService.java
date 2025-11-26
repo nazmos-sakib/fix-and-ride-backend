@@ -1,9 +1,9 @@
 package com.api.fix_and_ride.service;
 
 
-import com.api.fix_and_ride.dto.LoginRequest;
-import com.api.fix_and_ride.dto.SignupRequest;
-import com.api.fix_and_ride.model.User;
+import com.api.fix_and_ride.dto.LoginRequestDTO;
+import com.api.fix_and_ride.dto.SignupRequestDTO;
+import com.api.fix_and_ride.entity.UserEntity;
 import com.api.fix_and_ride.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,13 +18,13 @@ public class AuthService {
         this.encoder = encoder;
     }
 
-    public void signup(SignupRequest req) {
+    public void signup(SignupRequestDTO req) {
         if (userRepo.existsByEmail(req.email)) {
             throw new IllegalArgumentException("Email already registered");
         }
 
         userRepo.save(
-                new User(
+                new UserEntity(
                         req.firstName+" "+req.lastName,
                         req.address,
                         req.houseNo,
@@ -36,7 +36,7 @@ public class AuthService {
         );
     }
 
-    public User validateLogin(LoginRequest req) {
+    public UserEntity validateLogin(LoginRequestDTO req) {
         var user = userRepo.findByEmail(req.email)
                 .orElseThrow(() -> new IllegalArgumentException("Bad credentials: Email not found"));
         if (!encoder.matches(req.password, user.getPasswordHash())) {

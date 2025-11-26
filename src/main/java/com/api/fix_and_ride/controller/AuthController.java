@@ -1,10 +1,10 @@
 package com.api.fix_and_ride.controller;
 
-import com.api.fix_and_ride.dto.AuthResponse;
-import com.api.fix_and_ride.dto.LoginRequest;
-import com.api.fix_and_ride.dto.SignupRequest;
+import com.api.fix_and_ride.dto.AuthResponseDTO;
+import com.api.fix_and_ride.dto.LoginRequestDTO;
+import com.api.fix_and_ride.dto.SignupRequestDTO;
 import com.api.fix_and_ride.dto.UserDTO;
-import com.api.fix_and_ride.model.User;
+import com.api.fix_and_ride.entity.UserEntity;
 import com.api.fix_and_ride.security.JwtService;
 import com.api.fix_and_ride.service.AuthService;
 import jakarta.validation.Valid;
@@ -26,20 +26,20 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody @Valid SignupRequest req) {
+    public ResponseEntity<?> signup(@RequestBody @Valid SignupRequestDTO req) {
         authService.signup(req);
         return ResponseEntity.status(201).build();
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginRequest req) {
-        User user = authService.validateLogin(req);
+    public ResponseEntity<AuthResponseDTO> login(@RequestBody @Valid LoginRequestDTO req) {
+        UserEntity userEntity = authService.validateLogin(req);
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         System.out.println("DEBUG: Authenticated user = " + auth);
 
-        String token = jwtService.generateToken(user.getEmail());
-        return ResponseEntity.ok(new AuthResponse(token, UserDTO.fromEntity(user) ));
+        String token = jwtService.generateToken(userEntity.getEmail(),"USER");
+        return ResponseEntity.ok(new AuthResponseDTO(token, UserDTO.fromEntityToDTO(userEntity) ));
     }
 
     // simple protected check: get current username from JWT

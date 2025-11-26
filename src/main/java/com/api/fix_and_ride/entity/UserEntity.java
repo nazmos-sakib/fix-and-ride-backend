@@ -1,4 +1,4 @@
-package com.api.fix_and_ride.model;
+package com.api.fix_and_ride.entity;
 
 
 import jakarta.persistence.*;
@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
-public class User {
+public class UserEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -22,7 +22,8 @@ public class User {
     private String post;
     @NotBlank
     private String city;
-
+    @Column(nullable = false)
+    private String role; // "USER" or "ADMIN"
     @NotBlank(message = "Email cannot be blank")
     @Email(message = "Email must be valid")
     @Column(nullable = false, unique = true)
@@ -31,18 +32,20 @@ public class User {
     @NotBlank
     private String passwordHash; // store the hash, not the raw password
 
-    public User() {}
-    public User(String email, String passwordHash) {
+    public UserEntity() {}
+    public UserEntity(String email, String passwordHash) {
         this.email = email;
         this.passwordHash = passwordHash;
+        this.role = "USER";
     }
 
-    public User(String username, String address, String houseNo, String post, String city, String email, String passwordHash) {
+    public UserEntity(String username, String address, String houseNo, String post, String city, String email, String passwordHash) {
         this.username = username;
         this.address = address;
         this.houseNo = houseNo;
         this.post = post;
         this.city = city;
+        this.role = "USER";
         this.email = email;
         this.passwordHash = passwordHash;
     }
