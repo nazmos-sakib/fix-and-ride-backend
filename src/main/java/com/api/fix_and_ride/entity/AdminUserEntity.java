@@ -19,7 +19,7 @@ public class AdminUserEntity {
     @NotBlank
     private String passwordHash;
     @Column(nullable = false)
-    private String role; // "USER" or "ADMIN"
+    private final String role; // "USER" or "ADMIN"
 
     public AdminUserEntity() {
         this.role = "ADMIN";

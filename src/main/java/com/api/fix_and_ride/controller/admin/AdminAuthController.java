@@ -27,8 +27,8 @@ public class AdminAuthController {
         AdminUserEntity admin = adminAuthService.validateAdminLogin(req);
 
         // Generate token with admin role encoded
-        String token = jwtService.generateToken(admin.getEmail(),"ADMIN");
+        String token = jwtService.generateAccessToken(admin.getEmail(),"ADMIN");
 
-        return ResponseEntity.ok(new AuthResponseDTO(token, null));
+        return ResponseEntity.ok(new AuthResponseDTO(token, null,null));
     }
 }

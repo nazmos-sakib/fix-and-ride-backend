@@ -1,7 +1,8 @@
-package com.api.fix_and_ride.security;
+package com.api.fix_and_ride.security.filters;
 
 import com.api.fix_and_ride.repository.AdminUserRepository;
 import com.api.fix_and_ride.repository.UserRepository;
+import com.api.fix_and_ride.security.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,7 +33,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String cookieHeader = request.getHeader("Cookie");
+        System.out.println("JwtAuthFilter->Raw Cookie header: " + cookieHeader);
 
+        // 1) No Authorization header → let request continue unauthenticated
         if (header == null || !header.startsWith("Bearer ")) {
             // No token → anonymous request allowed
             chain.doFilter(request, response);
@@ -42,40 +46,37 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String token = header.substring(7);
 
         try {
+            // 2) Invalid token → continue without authentication
             if (!jwtService.isTokenValid(token)) {
-                // Token exists but invalid → reject
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Invalid or expired token");
+                chain.doFilter(request, response);
                 return;
             }
-
+            // 3) Extract email + role
             String email = jwtService.extractUserEmail(token);
             String role  = jwtService.getRole(token);
 
-            if (email == null) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Token missing subject");
+            if (email == null || role == null) {
+                chain.doFilter(request, response);
                 return;
             }
 
-            // Skip if already authenticated
+            // 4) Skip if already authenticated
             if (SecurityContextHolder.getContext().getAuthentication() != null) {
                 chain.doFilter(request, response);
                 return;
             }
 
-            // Database validation
-            boolean valid = role.equals("ADMIN")
+            // 5) Check DB user exists
+            boolean exists = role.equals("ADMIN")
                     ? adminUserRepository.findByEmail(email).isPresent()
                     : userRepository.findByEmail(email).isPresent();
 
-            if (!valid) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("User does not exist");
+            if (!exists) {
+                chain.doFilter(request, response);
                 return;
             }
 
-            // Set authentication
+            // 6) Build authentication
             UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(email, null,
                             List.of(new SimpleGrantedAuthority("ROLE_" + role)));
@@ -84,11 +85,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(auth);
 
         } catch (Exception ex) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Authentication error: " + ex.getMessage());
+            SecurityContextHolder.clearContext();
+            chain.doFilter(request, response);
             return;
         }
-
+        // 7) Always continue filter chain
         chain.doFilter(request, response);
 
     }
