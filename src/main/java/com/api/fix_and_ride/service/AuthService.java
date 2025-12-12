@@ -1,8 +1,9 @@
 package com.api.fix_and_ride.service;
 
 
+import com.api.fix_and_ride.config.exceptions.InvalidCredentialsException;
+import com.api.fix_and_ride.config.exceptions.RefreshTokenException;
 import com.api.fix_and_ride.dto.AuthResponseDTO;
-import com.api.fix_and_ride.dto.LoginRequestDTO;
 import com.api.fix_and_ride.dto.SignupRequestDTO;
 import com.api.fix_and_ride.dto.UserDTO;
 import com.api.fix_and_ride.entity.RefreshTokenEntity;
@@ -14,18 +15,17 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 @Service
-
 @RequiredArgsConstructor
 public class AuthService {
+
     private final UserRepository userRepo;
     private final PasswordEncoder encoder;
-
     private final CookieUtil cookieUtil;
-
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+
+    private static final String USER_ROLE = "USER";
 
     public void signup(SignupRequestDTO req) {
         if (userRepo.existsByEmail(req.email)) {
@@ -47,57 +47,39 @@ public class AuthService {
 
     public AuthResponseDTO login(String email, String password, HttpServletResponse res) {
         UserEntity user = userRepo.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(InvalidCredentialsException::new);
 
         if (!encoder.matches(password, user.getPasswordHash())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new InvalidCredentialsException();
         }
-        // Access token
-        String accessToken = jwtService.generateAccessToken(user.getEmail(), "USER");
 
-        // Refresh token
+        String accessToken = jwtService.generateAccessToken(user.getEmail(), USER_ROLE);
+
         RefreshTokenEntity rt = refreshTokenService.createRefreshToken(user.getEmail());
+        cookieUtil.addRefreshTokenCookie(res, rt.getToken());
 
-        // Set cookie
-        new CookieUtil().addRefreshTokenCookie(res, rt.getToken());
-
-        return new AuthResponseDTO(
-                accessToken,
-                UserDTO.fromEntityToDTO(user),
-                null
-        );
+        return new AuthResponseDTO(accessToken, UserDTO.fromEntityToDTO(user), null);
     }
 
     public AuthResponseDTO refresh(String refreshToken, HttpServletResponse res) {
         RefreshTokenEntity rt = refreshTokenService.validateRefreshToken(refreshToken)
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+                .orElseThrow(() -> new RefreshTokenException("Invalid refresh token"));
 
         UserEntity user = userRepo.findByEmail(rt.getUserEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RefreshTokenException("User not found"));
 
-        // Generate new tokens
-        String accessToken = jwtService.generateAccessToken(user.getEmail(), "USER");
+        String newAccessToken = jwtService.generateAccessToken(user.getEmail(), USER_ROLE);
         RefreshTokenEntity newRt = refreshTokenService.createRefreshToken(user.getEmail());
 
-        new CookieUtil().addRefreshTokenCookie(res, newRt.getToken());
-        return new AuthResponseDTO(
-                accessToken,
-                UserDTO.fromEntityToDTO(user),
-                null
-        );
+        cookieUtil.addRefreshTokenCookie(res, newRt.getToken());
+        return new AuthResponseDTO(newAccessToken, UserDTO.fromEntityToDTO(user), null);
     }
 
-    public AuthResponseDTO logout(String refreshToken, HttpServletResponse res) {
+    public void logout(String refreshToken, HttpServletResponse res) {
         RefreshTokenEntity rt = refreshTokenService.validateRefreshToken(refreshToken)
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
-
+                .orElseThrow(() -> new RefreshTokenException("Invalid refresh token"));
 
         refreshTokenService.deleteTokensForUser(rt.getUserEmail());
-        new CookieUtil().clearRefreshTokenCookie(res);
-        return new AuthResponseDTO(
-                null,
-                null,
-                null
-        );
+        cookieUtil.clearRefreshTokenCookie(res);
     }
 }
