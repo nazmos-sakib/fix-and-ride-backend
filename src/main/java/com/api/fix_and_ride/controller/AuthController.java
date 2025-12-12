@@ -31,7 +31,6 @@ public class AuthController {
         authService.signup(req);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
-    @CrossOrigin(origins = "https://localhost:5500", allowCredentials = "true")
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody @Valid LoginRequestDTO req, HttpServletResponse res) {
         return ResponseEntity.ok(
@@ -39,7 +38,6 @@ public class AuthController {
         );
     }
 
-    @CrossOrigin(origins = "https://localhost:5500", allowCredentials = "true")
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponseDTO> refresh(@CookieValue(name = "refreshtoken", required = true) String refreshToken,
                                                    HttpServletResponse res) {
@@ -69,9 +67,33 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(Authentication auth, HttpServletResponse res) {
-        authService.logout(auth.getName(), res);
-        return ResponseEntity.ok("Logged out");
+    public ResponseEntity<?> logout(@CookieValue(name = "refreshtoken", required = true) String refreshToken,
+    HttpServletResponse res) {
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new AuthResponseDTO(
+                                    null,
+                                    null,
+                                    "Refresh token missing"
+                            )
+                    );
+        }
+        try {
+            return ResponseEntity.ok(
+                    authService.logout(refreshToken, res)
+            );
+        } catch (Exception e) {
+            new CookieUtil().clearRefreshTokenCookie(res);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new AuthResponseDTO(
+                                    null,
+                                    null,
+                                    "Invalid refresh token"
+                            )
+                    );
+        }
+
+
     }
 
     // simple protected check: get current username from JWT

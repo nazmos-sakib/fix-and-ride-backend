@@ -22,11 +22,11 @@ public class CookieUtil {
                 .secure(true)
                 //.sameSite("Lax")
                 .sameSite("None")
-                .path("/")
+                .path("/api/auth/user")
                 .maxAge(7 * 24 * 60 * 60)
                 .build();
 
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString()+"; Partitioned");
     }
 
     public void clearRefreshTokenCookie(HttpServletResponse response) {
@@ -35,10 +35,10 @@ public class CookieUtil {
                 .secure(true)
                 .sameSite("None")
                 //.sameSite("Lax")
-                .path("/")
+                .path("/api/auth/user")
                 .maxAge(0)
                 .build();
 
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString()+"; Partitioned");
     }
 }

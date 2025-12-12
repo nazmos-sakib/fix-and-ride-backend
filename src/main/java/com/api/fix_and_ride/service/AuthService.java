@@ -87,8 +87,17 @@ public class AuthService {
         );
     }
 
-    public void logout(String email, HttpServletResponse res) {
-        refreshTokenService.deleteTokensForUser(email);
+    public AuthResponseDTO logout(String refreshToken, HttpServletResponse res) {
+        RefreshTokenEntity rt = refreshTokenService.validateRefreshToken(refreshToken)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+
+
+        refreshTokenService.deleteTokensForUser(rt.getUserEmail());
         new CookieUtil().clearRefreshTokenCookie(res);
+        return new AuthResponseDTO(
+                null,
+                null,
+                null
+        );
     }
 }
