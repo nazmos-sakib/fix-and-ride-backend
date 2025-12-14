@@ -2,7 +2,7 @@ package com.api.fix_and_ride.controller;
 
 import com.api.fix_and_ride.entity.BookingEntity;
 import com.api.fix_and_ride.repository.BookingRepository;
-import com.api.fix_and_ride.repository.ServiceRepository;
+import com.api.fix_and_ride.repository.ServiceItemRepository;
 import com.api.fix_and_ride.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +18,7 @@ public class UserBookingController {
 
     private final BookingRepository bookingRepo;
     private final UserRepository userRepo;
-    private final ServiceRepository serviceRepo;
+    private final ServiceItemRepository serviceRepo;
 
     // USER creates booking
     @PostMapping("/create")
@@ -33,10 +33,7 @@ public class UserBookingController {
                 .orElseThrow(() -> new RuntimeException("Service not found"));
 
         BookingEntity booking = new BookingEntity();
-        booking.setUser(user);
-        booking.setService(service);
-        booking.setDate(LocalDate.now());
-        booking.setStatus("PENDING");
+
 
         return ResponseEntity.ok(bookingRepo.save(booking));
     }

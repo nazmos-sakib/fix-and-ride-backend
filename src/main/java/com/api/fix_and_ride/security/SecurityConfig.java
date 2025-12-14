@@ -5,6 +5,7 @@ import com.api.fix_and_ride.security.filters.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -44,13 +45,16 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/user/**").permitAll()
-                        .requestMatchers("/api/auth/admin/login").permitAll()
+                        .requestMatchers("/api/user/auth/**").permitAll()
+                        .requestMatchers("/api/admin/auth/login").permitAll()
                         // Admin-protected endpoints
                         .requestMatchers("/api/admin/booking/**").hasRole("ADMIN")
                         // Regular user endpoints
                         .requestMatchers("/api/user/booking/**").hasRole("USER")
+                        //.requestMatchers("/api/user/service/**").hasRole("USER")
+                        .requestMatchers("/api/user/service/**").permitAll()
                         .requestMatchers("/api/services/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -58,11 +62,11 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
+/*    @Bean
     public CorsFilter corsFilter() {
         // This ensures Spring handles OPTIONS requests properly BEFORE your controllers
         return new CorsFilter(corsConfigurationSource());
-    }
+    }*/
 
     // allow your frontend to call the API during dev (adjust origins/ports!)
     @Bean

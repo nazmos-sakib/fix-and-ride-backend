@@ -82,4 +82,6 @@ public class AuthService {
         refreshTokenService.deleteTokensForUser(rt.getUserEmail());
         cookieUtil.clearRefreshTokenCookie(res);
     }
+
+    public void get(){}
 }

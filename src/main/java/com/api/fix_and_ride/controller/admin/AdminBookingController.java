@@ -2,6 +2,7 @@ package com.api.fix_and_ride.controller.admin;
 
 
 import com.api.fix_and_ride.entity.BookingEntity;
+import com.api.fix_and_ride.entity.BookingStatus;
 import com.api.fix_and_ride.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +47,7 @@ public class AdminBookingController {
         var booking = bookingRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        booking.setStatus(status);
+        booking.setStatus(BookingStatus.valueOf(status));
         bookingRepo.save(booking);
 
         return ResponseEntity.ok(booking);

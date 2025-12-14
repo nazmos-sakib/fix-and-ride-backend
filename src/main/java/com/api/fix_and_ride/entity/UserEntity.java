@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
 public class UserEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long userId;
 
     @NotBlank
     @Column(length=100)
@@ -50,7 +50,7 @@ public class UserEntity {
         this.passwordHash = passwordHash;
     }
 
-    public Long getId() { return id; }
+    public Long getId() { return userId; }
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
@@ -66,6 +66,14 @@ public class UserEntity {
 
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }

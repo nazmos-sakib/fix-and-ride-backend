@@ -22,7 +22,7 @@ public class CookieUtil {
                 .secure(true)
                 //.sameSite("Lax")
                 .sameSite("None")
-                .path("/api/auth/user")
+                .path("/api/user")
                 .maxAge(7 * 24 * 60 * 60)
                 .build();
 
@@ -35,7 +35,7 @@ public class CookieUtil {
                 .secure(true)
                 .sameSite("None")
                 //.sameSite("Lax")
-                .path("/api/auth/user")
+                .path("/api/user")
                 .maxAge(0)
                 .build();
 
