@@ -64,13 +64,13 @@ This clean separation improves maintainability and allows for easier future exte
 The main page greets the user and shows available services with illustrative images (tools, car, moving, repairs, etc.).
 
 <!-- You can replace these with your actual screenshot files once uploaded -->
-![Homepage and service cards](screenshots/homepage-services.png)
+![Homepage and service cards](screenshots/homepage-services..png)
 
 ![Login modal example](screenshots/login-modal.png)
 
 ### Booking Interface
 Interactive calendar and time slot selection for booking a service.
 
-![Booking calendar view](screenshots/booking-calendar.png)
+![Booking calendar view](screenshots/booking-calender.png)
 
 ## Project Structure (suggested)
