@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/user/auth/me").permitAll()
                         .requestMatchers("/api/user/auth/**").permitAll()
                         .requestMatchers("/api/admin/auth/login").permitAll()
                         // Admin-protected endpoints

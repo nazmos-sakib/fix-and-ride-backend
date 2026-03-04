@@ -1,10 +1,15 @@
 package com.api.fix_and_ride.controller;
 
+import com.api.fix_and_ride.dto.BookingRequestDTO;
+import com.api.fix_and_ride.dto.BookingResponseDTO;
 import com.api.fix_and_ride.entity.BookingEntity;
 import com.api.fix_and_ride.repository.BookingRepository;
 import com.api.fix_and_ride.repository.ServiceItemRepository;
 import com.api.fix_and_ride.repository.UserRepository;
+import com.api.fix_and_ride.service.ServiceItemService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +21,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class UserBookingController {
 
+    private final ServiceItemService serviceItemService;
     private final BookingRepository bookingRepo;
     private final UserRepository userRepo;
     private final ServiceItemRepository serviceRepo;
@@ -66,5 +72,11 @@ public class UserBookingController {
         }
 
         return ResponseEntity.ok(booking);
+    }
+
+    @PostMapping("/confirm-booking")
+    @ResponseStatus(HttpStatus.CREATED)
+    public BookingResponseDTO confirmBooking(@RequestBody @Valid BookingRequestDTO reqDTO) {
+        return serviceItemService.confirmBooking(reqDTO);
     }
 }

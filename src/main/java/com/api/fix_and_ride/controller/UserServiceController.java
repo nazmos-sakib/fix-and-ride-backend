@@ -41,11 +41,6 @@ public class UserServiceController {
         );
     }
 
-    @PostMapping("/confirm-booking")
-    @ResponseStatus(HttpStatus.CREATED)
-    public BookingResponseDTO confirmBooking(@RequestBody @Valid BookingRequestDTO reqDTO) {
-        return serviceItemService.confirmBooking(reqDTO);
-    }
 
 
 }
